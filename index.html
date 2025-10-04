@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Our Monthsary ✨</title>
+  <meta name="description" content="An interactive little love site—made just for you. 💖">
+  <meta name="theme-color" content="#0f0f1a">
+  <style>
+    :root{
+      --bg:#0b0b14; --card:#151527; --pink:#ff79c6; --hot:#ff6b6b; --mint:#7ef7d6;
+      --gold:#ffd166; --text:#e8e8f3; --muted:#a1a1b5; --shadow:0 10px 30px rgba(0,0,0,.35);
+      --radius:16px;
+      --answer-fade: 650ms;
+    }
+
+    /* --- Global / Mobile-first --- */
+    *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+    html,body{height:100%}
+    body{
+      margin:0;color:var(--text); background:
+      radial-gradient(900px 700px at 10% 10%, #17172a 0%, #0f0f1a 48%, var(--bg) 100%);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      overflow-x:hidden; /* 🔒 prevent sideways scroll */
+      padding-bottom:max(64px, env(safe-area-inset-bottom)); /* room for mini player */
+      touch-action: pan-y; /* prefer vertical scroll-only */
+    }
+    img{max-width:100%; height:auto; display:block}
+    a{color:var(--mint); text-decoration:none}
+    .container{max-width:900px;margin:0 auto;padding:12px 14px; width:100%}
+
+    /* --- Top bar --- */
+    nav.top{
+      position:sticky; top:0; z-index:50;
+      -webkit-backdrop-filter:saturate(1.6) blur(8px); backdrop-filter:saturate(1.6) blur(8px);
+      background:#0f0f1acc; border-bottom:1px solid #ffffff14;
+    }
+    nav.top .row{
+      display:flex;gap:10px;align-items:center;justify-content:space-between;
+      padding:8px max(10px, env(safe-area-inset-left)) 8px max(10px, env(safe-area-inset-right));
+      min-width:0; /* prevent row from growing wider than viewport */
+    }
+    .pill{display:inline-block;padding:.26rem .7rem;border:1px solid #ffffff1a;border-radius:999px;color:var(--muted);font-size:12px;white-space:nowrap}
+    nav .links{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;padding-bottom:6px; scrollbar-width:none; max-width:100%; flex:1; min-width:0}
+    nav .links::-webkit-scrollbar{display:none}
+    nav .links a{flex:0 0 auto; font-size:12px;color:var(--text);opacity:.92;border:1px solid #ffffff16; padding:8px 10px;border-radius:999px; white-space:nowrap}
+
+    /* --- Hero --- */
+    header{
+      position:relative;display:grid; place-items:center;
+      min-height:58dvh; text-align:center; padding:20px 14px;
+    }
+    .title{
+      font-size:clamp(24px, 7.5vw, 42px);
+      line-height:1.08;margin:0;
+      background: linear-gradient(90deg, var(--mint), var(--pink), var(--gold));
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+      filter: drop-shadow(0 6px 24px rgba(255,255,255,.06));
+    }
+    .subtitle{color:var(--muted);margin:.5rem 0 1.1rem;font-size:clamp(13px,3.6vw,16px)}
+    .cta{
+      display:inline-flex;align-items:center;justify-content:center;gap:.55rem;
+      min-height:44px; min-width:44px; padding:12px 14px;border-radius:14px;
+      background:linear-gradient(180deg, #ffffff12, #ffffff08);
+      border:1px solid #ffffff22; color:var(--text); font-weight:700; font-size:15px;
+      box-shadow:var(--shadow); transition:transform .2s ease; cursor:pointer; user-select:none;
+    }
+    .cta:active{transform:scale(.98)}
+    .glass{background:linear-gradient(180deg, #ffffff10, #ffffff06); border:1px solid #ffffff22;border-radius:var(--radius); box-shadow:var(--shadow);}
+    .card{padding:14px;border-radius:var(--radius)}
+    .muted{color:var(--muted)}
+    section{scroll-margin-top:70px}
+
+    /* --- Background Hearts --- */
+    #heartsCanvas{position:fixed; inset:0; z-index:-1; opacity:.45; pointer-events:none}
+
+    /* --- IG-like feed: one card per feature --- */
+    .sections{display:flex; flex-direction:column; gap:14px; margin:12px 0; width:100%}
+    .feature-card{display:block; width:100%}
+    .feature-card h2{margin:0 0 .4rem; font-size:18px}
+
+    /* --- Countdown --- */
+    .timer{font-variant-numeric:tabular-nums; font-weight:800; font-size:20px}
+    .ticker{white-space:nowrap; overflow:hidden; border:1px solid #ffffff1a; border-radius:12px; padding:.6rem .8rem; background:#ffffff08; font-size:13px}
+    .ticker span{
+      display:inline-block; padding-left:100%;
+      animation:marq var(--marquee-dur, 28s) linear infinite; /* slower via CSS var */
+    }
+    @keyframes marq{from{transform:translateX(0)} to{transform:translateX(-100%)}}
+
+    /* --- Gallery (mobile-first, contained width) --- */
+    .photos{display:grid; grid-template-columns:repeat(3,1fr); gap:4px; width:100%}
+    .photos img{
+      width:100%; height: clamp(80px, 24vw, 120px);
+      object-fit: cover; border-radius:10px; border:1px solid #ffffff22;
+    }
+    @media (min-width:480px) and (max-width:719px){ .photos img{ height: clamp(100px, 22vw, 130px); } }
+    @media (min-width:720px){ .photos{ grid-template-columns:repeat(4,1fr); gap:6px } .photos img{ height: 140px; } }
+    .lightbox{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:#000000cc; z-index:60; padding:16px}
+    .lightbox img{max-width:92vw; max-height:75dvh; border-radius:14px; border:1px solid #ffffff2a; box-shadow:var(--shadow)}
+
+    /* --- Quiz --- */
+    .quiz{padding-left:0}
+    .quiz li{list-style:none;margin:.5rem 0}
+    .quiz button{
+      width:100%;text-align:left;background:#ffffff0a;border:1px solid #ffffff1a;color:var(--text);
+      padding:12px;border-radius:12px;cursor:pointer; font-size:15px;
+      transition: background-color var(--answer-fade) ease, border-color var(--answer-fade) ease, transform var(--answer-fade) ease, opacity var(--answer-fade) ease, filter var(--answer-fade) ease;
+    }
+    .quiz button.marked{opacity:0.92; transform:scale(.985); filter:brightness(1.05);}
+    .quiz button.correct{border-color:#50fa7b; background:#50fa7b22}
+    .quiz button.wrong{border-color:#ff6b6b; background:#ff6b6b22}
+
+    /* --- Polaroids (contain overflow so no sideways page scroll) --- */
+    .polaroid-wall{display:grid; grid-template-columns:repeat(2,1fr); gap:6px; position:relative; overflow:hidden}
+    @media (min-width:760px){ .polaroid-wall{grid-template-columns:repeat(4,1fr)} }
+    .polaroid{background:#f8f8ff; color:#111; border-radius:10px; padding:6px; transform:rotate(-2deg); box-shadow:0 10px 20px rgba(0,0,0,.35); touch-action:none; position:relative; will-change:transform}
+    .polaroid img{width:100%; height: clamp(100px, 34vw, 150px); object-fit:cover; border-radius:8px}
+    .polaroid p{margin:.3rem 0 0; font-size:12px; text-align:center}
+
+    /* --- Scratch --- */
+    .scratch-wrap{position:relative; display:grid; place-items:center; overflow:hidden; min-height:170px; border-radius:12px; border:1px solid #ffffff22; background:#ffffff05}
+    .scratch-wrap .reveal{padding:12px; text-align:center}
+    .scratch-wrap canvas{position:absolute; inset:0}
+
+    /* --- FABs --- */
+    .floating{position:fixed; right:max(12px, env(safe-area-inset-right)); bottom:max(72px, env(safe-area-inset-bottom)); display:flex; gap:8px; flex-direction:column; z-index:40;}
+    .fab{border:none; cursor:pointer; border-radius:14px; padding:12px 14px; min-width:44px; min-height:44px; background:linear-gradient(180deg, #ffffff14, #ffffff08); border:1px solid #ffffff2a; box-shadow:var(--shadow); color:#fff; font-weight:700; font-size:15px}
+
+    /* --- Intro Overlay + scroll lock only during intro --- */
+    html.no-scroll, body.no-scroll{height:100dvh; overflow:hidden;}
+    @supports (-webkit-touch-callout: none){ body.no-scroll{ position:fixed; width:100%; } }
+
+    .intro-overlay{
+      position:fixed; inset:0; z-index:100;
+      min-height:100dvh; max-height:100dvh; overflow:hidden;
+      display:grid; place-items:center; padding:20px;
+      background:radial-gradient(1200px 800px at 20% 10%, #1a1a2e 0%, #0b0b14 60%, #06060b 100%);
+    }
+    .intro-card{width:100%; max-width:720px; border-radius:18px; border:1px solid #ffffff1e; background:linear-gradient(180deg, #ffffff10, #ffffff05); box-shadow:var(--shadow); padding:18px}
+    .intro-line{font-size:clamp(18px, 4.8vw, 24px); line-height:1.45; margin:.2rem 0 .6rem}
+    .intro-cta{margin-top:10px; display:flex; gap:10px; justify-content:center}
+    .blink{animation:blink 1.2s steps(2, start) infinite}
+    @keyframes blink{to{visibility:hidden}}
+
+    /* --- Mini music bar (visible player) --- */
+    .mini-player{
+      position:fixed; left:0; right:0; bottom:0; z-index:45;
+      padding:8px max(12px, env(safe-area-inset-left)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-right));
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      background:linear-gradient(180deg, #101020cc, #0b0b14f2); border-top:1px solid #ffffff1a;
+      backdrop-filter: blur(8px);
+    }
+    .mini-player .meta{display:flex; flex-direction:column}
+    .mini-player .meta .t{font-weight:700; font-size:14px}
+    .mini-player .meta .s{font-size:12px; color:var(--muted)}
+    .mini-player .controls{display:flex; gap:8px}
+    .mini-player .btn{border:none; border-radius:12px; padding:10px 12px; background:#ffffff12; color:#fff; font-weight:700; }
+
+    /* Tiny screens */
+    @media (max-width:360px){
+      .title{font-size:clamp(22px, 8vw, 34px)}
+      .cta{font-size:14px}
+      .quiz button{font-size:14px}
+    }
+  </style>
+</head>
+<body>
+  <canvas id="heartsCanvas"></canvas>
+
+  <!-- Romantic Typewriter Intro -->
+  <div class="intro-overlay" id="introOverlay" aria-label="Romantic introduction">
+    <div class="intro-card">
+      <div id="introLines"></div>
+      <div class="intro-cta">
+        <button id="skipIntro" class="cta" aria-label="Skip intro">⏭️ Skip</button>
+        <button id="replayIntro" class="cta" aria-label="Replay intro">🔁 Replay</button>
+        <button id="continueIntro" class="cta" aria-label="Continue" style="display:none">➡️ Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <nav class="top">
+    <div class="row container">
+      <div class="pill" id="monthsaryLabel">💕 Monthsary</div>
+      <div class="links" aria-label="Quick sections">
+        <a href="#countdown">Countdown</a>
+        <a href="#photos">Memories</a>
+        <a href="#loveletter">Letter</a>
+        <a href="#quiz">Quiz</a>
+        <a href="#coupons">Coupons</a>
+        <a href="#reasons">Reasons</a>
+        <a href="#scratch">Scratch</a>
+        <a href="#polaroids">Polaroids</a>
+        <a href="#promises">Promises</a>
+      </div>
+      <div><button id="musicBtn" class="cta" aria-label="Play music">▶️</button></div>
+    </div>
+  </nav>
+
+  <header class="container">
+    <p class="pill">A little surprise for you 💌</p>
+    <h1 class="title" id="heroTitle">Happy Monthsary!</h1>
+    <p class="subtitle" id="heroSub">Tap below to begin your surprise.</p>
+    <button id="startBtn" class="cta">💖 Start the Magic</button>
+    <div style="margin-top:10px" class="muted">Best with sound 🔊</div>
+  </header>
+
+  <main class="container sections">
+    <section id="countdown" class="glass card feature-card">
+      <h2>⏳ Countdown to next monthsary</h2>
+      <p class="muted">Since <span id="startDateText"></span></p>
+      <h3 class="timer" id="countdownTimer">00d : 00h : 00m : 00s</h3>
+      <div class="ticker"><span id="reasonsTicker">Loading sweet things…</span></div>
+    </section>
+
+    <section id="photos" class="glass card feature-card">
+      <h2>📸 Little gallery of us</h2>
+      <div class="photos" id="photoGrid"></div>
+      <div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
+        <img id="lightboxImg" alt="Memory photo">
+      </div>
+    </section>
+
+    <section id="loveletter" class="glass card feature-card">
+      <h2>💌 A tiny letter</h2>
+      <p id="letterText" class="muted"></p>
+      <button id="revealBtn" class="cta">🔐 Unlock Secret Message</button>
+    </section>
+
+    <section id="quiz" class="glass card feature-card">
+      <h2>🧠 Mini-Quiz</h2>
+      <ol class="quiz" id="quizList"></ol>
+      <p id="quizScore" class="muted"></p>
+    </section>
+
+    <section id="coupons" class="glass card feature-card">
+      <h2>🎟️ Love Coupons</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="cta" id="couponBtn">✨ Generate</button>
+        <div class="card" style="border:1px dashed #ffffff2a" id="couponOut">Tap to get a sweet surprise.</div>
+      </div>
+    </section>
+
+    <section id="reasons" class="glass card feature-card">
+      <h2>💗 Reasons I adore you</h2>
+      <p class="muted">Tap to release floating love notes.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="cta" id="notesBtn">💌 Release notes</button>
+        <div id="reasonsList" class="card"></div>
+      </div>
+    </section>
+
+    <section id="scratch" class="glass card feature-card">
+      <h2>🪄 Scratch to reveal</h2>
+      <div class="scratch-wrap">
+        <div class="reveal" id="scratchReveal">May bag ka sakin pagkauwi mo mahal. I love you and mzu so much!</div>
+        <canvas id="scratchCanvas"></canvas>
+      </div>
+    </section>
+
+    <section id="polaroids" class="glass card feature-card">
+      <h2>📷 Polaroid wall</h2>
+      <div class="polaroid-wall" id="polaroidWall"></div>
+    </section>
+
+    <section id="promises" class="glass card feature-card">
+      <h2>🤝 Promises for us</h2>
+      <div class="checklist" id="promiseList"></div>
+    </section>
+  </main>
+
+  <div class="floating">
+    <button class="fab" id="liteBtn" title="Toggle Lite Mode">🌙 Lite</button>
+    <button class="fab" id="confettiBtn" title="Confetti!">🎉</button>
+    <button class="fab" id="fireworksBtn" title="Fireworks">🎆</button>
+  </div>
+
+  <!-- Mini music bar (visible) -->
+  <div class="mini-player" role="region" aria-label="Music player">
+    <div class="meta">
+      <div class="t">ICanWaitSaSM.mp3</div>
+      <div class="s">Tap Play to start music 🎵</div>
+    </div>
+    <div class="controls">
+      <button class="btn" id="playPauseBtn">▶️ Play</button>
+      <button class="btn" id="muteBtn">🔇</button>
+    </div>
+  </div>
+
+  <footer class="container muted" style="text-align:center; padding-bottom:12px">Made with ❤️ for you.</footer>
+
+  <!-- Background music -->
+  <audio id="bgm" preload="none" loop crossorigin="anonymous"></audio>
+
+<script>
+  /* ======= CONFIG (edit these) ======= */
+  const CONFIG = {
+    yourName: "Job",
+    partnerName: "Milot",
+    startDate: "2025-05-05",
+    heroTitle: "Happy Monthsary, {{partner}}!",
+    heroSubtitle: "Tap below to begin your surprise.",
+    introLines: [
+      "Hi Love, Mahal,  MyLoves 💖",
+      "Before anything else… thank you for choosing me every single day.",
+      "Kahit lagi kita iniimbyerna, lagi mo pa rin akong pinapatawad — salamat sa patience mo.",
+      "I love your laugh, your patience, and the way your hand looks for mine.",
+      "Ikaw ang pahinga ko at lakas ko, kahit pagod na sa araw.",
+      "You make ordinary moments feel special",
+      "Thank you for loving me on my good days and my messy days.",
+      "I promise to choose you in the little ways, every day.",
+      "You are my peace and my favorite chaos. 🫶",
+      "From this moment on, it’s you and me  always.",
+      "If you ever doubt it, remember: I pick you. Every time.",
+      "Love....? Paki pindot yung Continue button :). ✨"
+    ],
+    letter: "I’m grateful for every ordinary day that becomes extraordinary because you’re in it. Thank you for your patience, your laugh that I can spot the room, and your hand that always finds mine. More sunsets, more drumstick dates , more random sweetness in the kitchen together. I love you 💞",
+    secretPrompt: "What’s our call sign? (hint: love or mahal)",
+    secretAnswer: "love|mahal|myloves|mylove",
+    secretReveal: "Correct! Dahil diyan, ang pogi pogi ko, my {{call}}. A little surprise is waiting when you come back. 😘",
+    musicUrl: "https://raw.githubusercontent.com/mimoypanot/hmmrq/main/ICanWaitSaSM.mp3",
+    photos: [
+      "https://github.com/mimoypanot/hmmrq/blob/main/1.jpg?raw=true?q=80&w=1200&auto=format&fit=crop",
+      "https://github.com/mimoypanot/hmmrq/blob/main/2.jpg?raw=true?q=80&w=1200&auto=format&fit=crop",
+      "https://github.com/mimoypanot/hmmrq/blob/main/3.jpg?raw=true?q=80&w=1200&auto=format&fit=crop",
+      "https://github.com/mimoypanot/hmmrq/blob/main/4.jpg?raw=true?q=80&w=1200&auto=format&fit=crop"
+    ],
+    quiz: [
+      { q: "Our ideal chill date is…", options:["Rides w/ Drumstick","Gym + salad","Mountain hike at 4am"], a:0 },
+      { q: "Sino si Job?", options:["Mahal mo","Mahal na mahal mo","Mahal na mahal mo na sobrang pogi"], a:2 },
+      { q: "Sino si Milot?", options:["“Mahal ni Job”","“Mahal na mahal ni Job","“Mahal na mahal ni Job na sobrang ganda”"], a:2 },
+      { q: "Lagi ka ba naiimbyerna kay Job?", options:["“Oo”","“Hindi","“Ewan”"], a:0 }
+    ],
+    coupons: [
+      "One breakfast in bed","30-minute shoulder massage","Scroll tayo hanap ng bag",
+      "Rainy-day yakap","Jogging na hila hila ka habang nakasakay sa mini car","Unlimited kiss",
+      "Unlimited hugs voucher","One chore-free day for you"
+    ],
+    reasons: [
+      "You laugh with your whole heart.","You remember the little things.","You make home out of anywhere.",
+      "You’re my safest place.","You still give me butterflies.","You choose us, every day.",
+      "You’re my favorite hello.","You’re my peace and my chaos."
+    ],
+    loveNotes: [
+      "I like you more than extra rice 🍚","Ikaw ang pahinga ko.","Sabay tayo kahit saan. 🚶‍♂️🚶‍♀️",
+      "Your hand fits mine perfectly.","You + me + rain = perfect.","Kape first, then kiss. ☕💋",
+      "Ang ganda mo kahit antok.","I pick you. Always.","Tulog lang ang kalaban ni Job."
+    ],
+    promises: [
+      "Listen first, fix later.","Choose kind words.","Celebrate small wins.",
+      "Grow together, not apart.","Drumstcik Date.","Always make time for hugs."
+    ],
+    scratch: { image: "", maskColor: "#b1b1c9" }
+  };
+
+  /* ======= SPEED (tweakable) ======= */
+  const SPEED = {
+    typeChar: 65,          // ms between typed characters (intro)
+    linePause: 900,        // ms pause after each intro line
+    tickerSeconds: 28,     // seconds for one full marquee loop
+    notesMin: 4800,        // ms min fall time for love notes
+    notesMax: 7000,        // ms max fall time for love notes
+    answerFadeMs: 650,     // ms for quiz button feedback (correct/wrong)
+    confettiMinMs: 2600,   // min confetti fall time
+    confettiMaxMs: 3800,   // max confetti fall time
+    fireworksParticleMs: 1600, // duration per particle flight
+    fireworksBursts: 3,        // how many bursts per trigger
+    fireworksBurstGapMs: 260,  // ms between bursts
+
+    /* typing sound controls */
+    typeEveryNChars: 1         // play sound every N non-space chars
+  };
+  document.documentElement.style.setProperty('--answer-fade', SPEED.answerFadeMs+'ms');
+
+  /* ======= Static text ======= */
+  CONFIG.heroTitle = CONFIG.heroTitle.replace("{{partner}}", CONFIG.partnerName);
+  document.getElementById("heroTitle").textContent = CONFIG.heroTitle;
+  document.getElementById("heroSub").textContent = CONFIG.heroSubtitle;
+  document.getElementById("startDateText").textContent = CONFIG.startDate;
+  document.getElementById("monthsaryLabel").textContent = `💕 ${CONFIG.yourName} ❤ ${CONFIG.partnerName}`;
+  const typeLines = CONFIG.introLines.map(l=> l.replace("{{partner}}", CONFIG.partnerName));
+
+  /* ======= Scroll lock just during intro ======= */
+  function lockScroll(){ document.documentElement.classList.add('no-scroll'); document.body.classList.add('no-scroll'); }
+  function unlockScroll(){ document.documentElement.classList.remove('no-scroll'); document.body.classList.remove('no-scroll'); }
+
+  /* ======= TYPE SFX via Web Audio (mobile friendly) ======= */
+  const TYPE_SFX = {
+    ctx: null, enabled: false,
+    gain: 0.08, minHz: 1800, maxHz: 3000, durMs: 22, attackMs: 1, releaseMs: 18
+  };
+  function ensureAudioContext(){
+    if(!TYPE_SFX.ctx){
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return null;
+      TYPE_SFX.ctx = new Ctx();
+    }
+    if(TYPE_SFX.ctx.state === "suspended"){
+      TYPE_SFX.ctx.resume().catch(()=>{});
+    }
+    return TYPE_SFX.ctx;
+  }
+  function enableTypingSound(){
+    const ctx = ensureAudioContext();
+    if(!ctx) return;
+    TYPE_SFX.enabled = true;
+  }
+  function playTypeClick(){
+    if(!TYPE_SFX.enabled) return;
+    const ctx = ensureAudioContext(); if(!ctx) return;
+    const o = ctx.createOscillator(); const g = ctx.createGain();
+    const now = ctx.currentTime;
+    const hz = TYPE_SFX.minHz + Math.random()*(TYPE_SFX.maxHz - TYPE_SFX.minHz);
+    o.type = "square"; o.frequency.setValueAtTime(hz, now);
+    const start = now, end = start + TYPE_SFX.durMs/1000;
+    const a = TYPE_SFX.attackMs/1000, r = TYPE_SFX.releaseMs/1000;
+    g.gain.setValueAtTime(0, start);
+    g.gain.linearRampToValueAtTime(TYPE_SFX.gain, start + Math.max(0.001,a));
+    g.gain.linearRampToValueAtTime(0.0001, end);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(start); o.stop(end + r);
+  }
+  const armAudioOnce = ()=>{
+    enableTypingSound();
+    window.removeEventListener("pointerdown", armAudioOnce);
+    window.removeEventListener("keydown", armAudioOnce);
+    window.removeEventListener("touchstart", armAudioOnce);
+  };
+  window.addEventListener("pointerdown", armAudioOnce, {passive:true});
+  window.addEventListener("keydown", armAudioOnce);
+  window.addEventListener("touchstart", armAudioOnce, {passive:true});
+
+  /* ======= Intro Typewriter ======= */
+  const overlay = document.getElementById("introOverlay");
+  const introBox = document.getElementById("introLines");
+  const skipBtn = document.getElementById("skipIntro");
+  const replayBtn = document.getElementById("replayIntro");
+  const contBtn = document.getElementById("continueIntro");
+  let i=0, j=0, timer=null, typedCount=0;
+
+  // lock immediately so intro shows first
+  lockScroll();
+
+  function render(){
+    if(i >= typeLines.length){ contBtn.style.display="inline-flex"; return; }
+    const current = typeLines[i];
+    if(j <= current.length){
+      const el = document.createElement("div");
+      el.className = "intro-line";
+      el.innerHTML = current.slice(0, j) + "<span class='blink'>|</span>";
+      if(introBox.lastChild) introBox.removeChild(introBox.lastChild);
+      introBox.appendChild(el);
+      j++;
+      const ch = current.charAt(j-1);
+      if(ch && ch.trim() !== ""){
+        typedCount++;
+        if(typedCount % Math.max(1, SPEED.typeEveryNChars) === 0){ playTypeClick(); }
+      }
+      timer = setTimeout(render, SPEED.typeChar);
+    } else {
+      const el = document.createElement("div");
+      el.className = "intro-line";
+      el.textContent = current;
+      if(introBox.lastChild) introBox.removeChild(introBox.lastChild);
+      introBox.appendChild(el);
+      i++; j=0;
+      timer = setTimeout(render, SPEED.linePause);
+    }
+  }
+  function startType(){ i=0; j=0; typedCount=0; contBtn.style.display="none"; introBox.innerHTML=""; clearTimeout(timer); render(); }
+
+  /* === Tulip shower (🌷) for ~3s === */
+  function tulipShower(durationMs=3000){
+    const start = performance.now();
+    const spawnEvery = 90; // ms between petals
+    function spawn(){
+      const now = performance.now();
+      if(now - start > durationMs) return;
+      const el = document.createElement("div");
+      el.textContent = "🌷";
+      el.style.position = "fixed";
+      el.style.left = (Math.random()*100) + "vw";
+      el.style.top = "-8vh";
+      el.style.fontSize = (18 + Math.random()*14) + "px";
+      el.style.pointerEvents = "none";
+      el.style.zIndex = 90;
+      document.body.appendChild(el);
+      const fall = 2800 + Math.random()*1200;
+      const drift = (Math.random()*2-1) * 80; // left/right sway
+      el.animate(
+        [
+          { transform: "translate(0,0) rotate(0deg)", opacity: 1 },
+          { transform: `translate(${drift/2}px, 55vh) rotate(30deg)`, opacity: .95 },
+          { transform: `translate(${drift}px, 110vh) rotate(80deg)`, opacity: 0.9 }
+        ],
+        { duration: fall, easing: "cubic-bezier(.2,.8,.2,1)" }
+      ).onfinish = ()=> el.remove();
+      setTimeout(spawn, spawnEvery);
+    }
+    spawn();
+  }
+
+  /* === Play BGM and tulips when Continue is clicked === */
+  const bgm = document.getElementById("bgm");
+  async function playMusicAndTulips(){
+    try{
+      const ctx = ensureAudioContext(); if(ctx) await ctx.resume();
+      if(CONFIG.musicUrl && !bgm.src){ bgm.src = CONFIG.musicUrl; }
+      await bgm.play();
+    }catch(e){ console.warn("Music play blocked until user gesture.", e); }
+    tulipShower(3000); // 🌷 for ~3 seconds
+    updatePlayerUI();
+  }
+
+  function endIntro(){
+    // start music + tulips right away, then fade overlay
+    playMusicAndTulips();
+    overlay.animate([{opacity:1},{opacity:0}], {duration:700, easing:"ease-out"}).onfinish = ()=>{
+      overlay.style.display="none";
+      unlockScroll();
+      // smooth scroll to content start
+      const y = document.getElementById("countdown").offsetTop - 60;
+      scrollTo({top:y, behavior:"smooth"});
+    };
+  }
+
+  // also arm audio on any of these buttons
+  [skipBtn, replayBtn, contBtn].forEach(btn=>{
+    btn.addEventListener("click", ()=>{ enableTypingSound(); });
+  });
+  skipBtn.addEventListener("click", endIntro);
+  replayBtn.addEventListener("click", startType);
+  contBtn.addEventListener("click", endIntro);
+  startType();
+
+  /* ======= Background Hearts ======= */
+  const canvas = document.getElementById("heartsCanvas");
+  const ctx = canvas.getContext("2d");
+  function sizeCanvas(){ canvas.width = innerWidth; canvas.height = Math.max(innerHeight, window.screen.height); }
+  sizeCanvas(); addEventListener("resize", sizeCanvas, {passive:true});
+  let hearts=[];
+  function heartPath(x,y,s){
+    ctx.moveTo(x,y);
+    ctx.bezierCurveTo(x, y-3*s, x-5*s, y-3*s, x-5*s, y);
+    ctx.bezierCurveTo(x-5*s, y+3*s, x, y+5*s, x, y+8*s);
+    ctx.bezierCurveTo(x, y+5*s, x+5*s, y+3*s, x+5*s, y);
+    ctx.bezierCurveTo(x+5*s, y-3*s, x, y-3*s, x, y);
+  }
+  function spawnHeart(){
+    const s = Math.random()*1.2+0.8;
+    hearts.push({
+      x: Math.random()*canvas.width, y: canvas.height + 20,
+      vy: -(Math.random()*0.6+0.3), vx: (Math.random()-.5)*0.4,
+      size: s*4 + (Math.random()*6), hue: 320 + Math.random()*40, alpha: .7+Math.random()*0.3
+    });
+  }
+  for(let k=0;k<40;k++) spawnHeart();
+  function tick(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(hearts.length<100 && Math.random()<.6) spawnHeart();
+    hearts.forEach(h=>{
+      h.x+=h.vx; h.y+=h.vy;
+      ctx.beginPath();
+      ctx.fillStyle = `hsla(${h.hue},85%,70%,${h.alpha})`;
+      heartPath(h.x,h.y,h.size);
+      ctx.fill();
+      if(h.y<-40){h.y=canvas.height+10; h.x=Math.random()*canvas.width;}
+    });
+    requestAnimationFrame(tick);
+  }
+  tick();
+
+  /* ======= Mini Player Controls ======= */
+  const musicBtn = document.getElementById("musicBtn");
+  const playPauseBtn = document.getElementById("playPauseBtn");
+  const muteBtn = document.getElementById("muteBtn");
+  const startBtn = document.getElementById("startBtn");
+
+  if(CONFIG.musicUrl){ bgm.src = CONFIG.musicUrl; }
+
+  function updatePlayerUI(){
+    playPauseBtn.textContent = bgm.paused ? "▶️ Play" : "⏸️ Pause";
+    muteBtn.textContent = bgm.muted ? "🔈" : "🔇";
+  }
+  async function togglePlay(){
+    try{
+      const ctx = ensureAudioContext(); if(ctx) await ctx.resume();
+      if(bgm.paused){ await bgm.play(); } else { bgm.pause(); }
+      updatePlayerUI();
+    }catch(e){ console.warn("Playback blocked until user gesture.", e); }
+  }
+  function toggleMute(){ bgm.muted = !bgm.muted; updatePlayerUI(); }
+
+  playPauseBtn.addEventListener("click", togglePlay);
+  muteBtn.addEventListener("click", toggleMute);
+  startBtn.addEventListener("click", togglePlay);
+  musicBtn.addEventListener("click", togglePlay);
+  bgm.addEventListener("play", updatePlayerUI);
+  bgm.addEventListener("pause", updatePlayerUI);
+  bgm.addEventListener("volumechange", updatePlayerUI);
+  updatePlayerUI();
+
+  /* ======= Countdown ======= */
+  const timerEl = document.getElementById("countdownTimer");
+  function nextMonthsary(fromStr){
+    const d0 = new Date(fromStr+"T00:00:00");
+    const now = new Date();
+    const months = (now.getFullYear()-d0.getFullYear())*12 + (now.getMonth()-d0.getMonth());
+    const next = new Date(d0); next.setMonth(d0.getMonth()+months+(now.getDate()>d0.getDate()?1:0));
+    if(now.getDate()===d0.getDate()) next.setMonth(next.getMonth()+1);
+    return next;
+  }
+  function updateCountdown(){
+    const target = nextMonthsary(CONFIG.startDate);
+    const now = new Date();
+    const diff = target - now;
+    const s = Math.max(0, Math.floor(diff/1000));
+    const d = Math.floor(s/86400);
+    const h = Math.floor((s%86400)/3600);
+    const m = Math.floor((s%3600)/60);
+    const sec = s%60;
+    timerEl.textContent = `${String(d).padStart(2,"0")}d : ${String(h).padStart(2,"0")}h : ${String(m).padStart(2,"0")}m : ${String(sec).padStart(2,"0")}s`;
+  }
+  setInterval(updateCountdown, 1000); updateCountdown();
+
+  /* ======= Reasons ticker & list ======= */
+  const ticker = document.getElementById("reasonsTicker");
+  function updateTicker(){
+    ticker.innerHTML = CONFIG.reasons.concat(CONFIG.reasons).map(r => `&nbsp;&nbsp;• ${r}`).join(" ");
+    ticker.style.setProperty('--marquee-dur', SPEED.tickerSeconds + 's');
+  }
+  updateTicker();
+  const reasonsList = document.getElementById("reasonsList");
+  reasonsList.innerHTML = "<ul style='margin:0; padding-left:1rem'>" + CONFIG.reasons.map(r=>`<li>${r}</li>`).join("") + "</ul>";
+
+  /* ======= Gallery ======= */
+  const grid = document.getElementById("photoGrid");
+  const lb = document.getElementById("lightbox");
+  const lbImg = document.getElementById("lightboxImg");
+  function openLightbox(src){ lbImg.src = src; lb.style.display="flex"; }
+  lb.addEventListener("click", ()=> lb.style.display="none");
+  CONFIG.photos.forEach((src,idx)=>{ const img = document.createElement("img"); img.loading="lazy"; img.src = src; img.alt = "Memory " + (idx+1); grid.appendChild(img); img.addEventListener("click", ()=>openLightbox(src)); });
+
+  /* ======= Letter + Secret ======= */
+  const letterText = document.getElementById("letterText");
+  letterText.textContent = CONFIG.letter;
+  document.getElementById("revealBtn").addEventListener("click", ()=>{
+    const a = prompt(CONFIG.secretPrompt || "Secret?");
+    if(!a) return;
+    const ans = (CONFIG.secretAnswer||"").toLowerCase().split("|");
+    const ok = ans.includes(a.trim().toLowerCase());
+    if(ok){
+      const call = a.trim().toLowerCase();
+      alert(CONFIG.secretReveal.replace("{{call}}", call));
+      fireworks();
+    } else {
+      alert("Close! Try 'love' or 'mahal' 🫶");
+    }
+  });
+
+  /* ======= Quiz (slow feedback) ======= */
+  const quizList = document.getElementById("quizList");
+  const scoreEl = document.getElementById("quizScore");
+  let score = 0, answered = 0;
+  CONFIG.quiz.forEach((item, qi)=>{
+    const li = document.createElement("li");
+    const q = document.createElement("div");
+    q.style.marginBottom = ".6rem";
+    q.innerHTML = `<strong>Q${qi+1}.</strong> ${item.q}`;
+    li.appendChild(q);
+    item.options.forEach((opt, oi)=>{
+      const b = document.createElement("button");
+      b.textContent = opt;
+      b.addEventListener("click", ()=>{
+        if(b.classList.contains("correct") || b.classList.contains("wrong")) return;
+        answered++;
+        b.style.transitionDuration = `${SPEED.answerFadeMs}ms`;
+        b.classList.add("marked");
+        if(oi === item.a){ b.classList.add("correct"); score++; }
+        else { b.classList.add("wrong"); }
+        scoreEl.textContent = `Score: ${score}/${CONFIG.quiz.length}`;
+        if(answered === CONFIG.quiz.length){
+          if(score >= Math.ceil(CONFIG.quiz.length*0.7)) fireworks(); else confetti();
+        }
+      });
+      li.appendChild(b);
+    });
+    quizList.appendChild(li);
+  });
+
+  /* ======= Coupons ======= */
+  const couponBtn = document.getElementById("couponBtn");
+  const couponOut = document.getElementById("couponOut");
+  couponBtn.addEventListener("click", ()=>{
+    const pick = CONFIG.coupons[Math.floor(Math.random()*CONFIG.coupons.length)];
+    couponOut.textContent = "🎟️ " + pick;
+    confetti();
+  });
+
+  /* ======= Love notes rain ======= */
+  const notesBtn = document.getElementById("notesBtn");
+  notesBtn.addEventListener("click", ()=>{
+    for(let i=0;i<6;i++){
+      noteDrop(CONFIG.loveNotes[Math.floor(Math.random()*CONFIG.loveNotes.length)]);
+    }
+  });
+  function noteDrop(text){
+    const d = document.createElement("div");
+    d.className="note"; d.textContent = text;
+    d.style.position="fixed"; d.style.zIndex=80;
+    d.style.left = (Math.random()*80+10)+"vw"; d.style.top = "-10vh";
+    d.style.rotate = (Math.random()*10-5)+"deg";
+    document.body.appendChild(d);
+    const dur = SPEED.notesMin + Math.random()*(SPEED.notesMax - SPEED.notesMin);
+    d.animate([{transform:"translateY(0)"},{transform:"translateY(110vh)"}], {duration: dur, easing:"ease-in"}).onfinish = ()=>d.remove();
+  }
+
+  /* ======= Scratch card ======= */
+  const scratchCanvas = document.getElementById("scratchCanvas");
+  const sctx = scratchCanvas.getContext("2d");
+  const sWrap = document.querySelector(".scratch-wrap");
+  function sizeScratch(){ scratchCanvas.width = sWrap.clientWidth; scratchCanvas.height = sWrap.clientHeight; paintMask(); }
+  function paintMask(){
+    sctx.fillStyle = CONFIG.scratch.maskColor || "#b1b1c9";
+    sctx.fillRect(0,0,scratchCanvas.width, scratchCanvas.height);
+    sctx.fillStyle = "#ffffff"; sctx.font = "bold 18px system-ui"; sctx.globalCompositeOperation="source-over";
+    sctx.fillText("Scratch here ✨", 14, 28);
+  }
+  sizeScratch(); addEventListener("resize", sizeScratch, {passive:true});
+  let scratching=false;
+  function scratch(x,y){
+    sctx.globalCompositeOperation="destination-out";
+    sctx.beginPath(); sctx.arc(x,y,22,0,Math.PI*2); sctx.fill();
+    sctx.globalCompositeOperation="source-over";
+  }
+  function handle(e){
+    const rect = scratchCanvas.getBoundingClientRect();
+    const x = (e.touches? e.touches[0].clientX: e.clientX) - rect.left;
+    const y = (e.touches? e.touches[0].clientY: e.clientY) - rect.top;
+    if(scratching) scratch(x,y);
+  }
+  scratchCanvas.addEventListener("mousedown", ()=>scratching=true);
+  scratchCanvas.addEventListener("mouseup", ()=>scratching=false);
+  scratchCanvas.addEventListener("mouseleave", ()=>scratching=false);
+  scratchCanvas.addEventListener("mousemove", handle);
+  scratchCanvas.addEventListener("touchstart", ()=>scratching=true, {passive:true});
+  scratchCanvas.addEventListener("touchend", ()=>scratching=false);
+  scratchCanvas.addEventListener("touchmove", handle, {passive:true});
+  if(CONFIG.scratch.image){
+    document.getElementById("scratchReveal").innerHTML = `<img src="${CONFIG.scratch.image}" style="max-width:100%; border-radius:12px">`;
+  }
+
+  /* ======= Polaroids (drag with transform) ======= */
+  const wall = document.getElementById("polaroidWall");
+  CONFIG.photos.forEach((src,i)=>{
+    const card = document.createElement("div");
+    card.className="polaroid"; card.style.rotate = (Math.random()*8-4)+"deg";
+    card.innerHTML = `<img loading="lazy" src="${src}"><p>${CONFIG.partnerName} + ${CONFIG.yourName}</p>`;
+    wall.appendChild(card);
+    let dragging=false, sx=0, sy=0, dx=0, dy=0;
+    card.addEventListener("pointerdown", (e)=>{ dragging=true; sx=e.clientX; sy=e.clientY; card.setPointerCapture(e.pointerId); card.style.cursor="grabbing"; card.style.zIndex=70; });
+    card.addEventListener("pointermove", (e)=>{ if(!dragging) return; dx=e.clientX-sx; dy=e.clientY-sy; card.style.transform = `translate(${dx}px, ${dy}px) ${card.style.rotate?`rotate(${card.style.rotate})`:''}`; });
+    card.addEventListener("pointerup", (e)=>{ dragging=false; card.releasePointerCapture(e.pointerId); card.style.cursor="grab"; });
+  });
+
+  /* ======= Promises ======= */
+  const pl = document.getElementById("promiseList");
+  CONFIG.promises.forEach((p)=>{
+    const id = "p_"+Math.random().toString(36).slice(2,7);
+    const row = document.createElement("label");
+    row.innerHTML = `<input type="checkbox" id="${id}" style="width:22px;height:22px"> <span>${p}</span>`;
+    pl.appendChild(row);
+  });
+  pl.addEventListener("change", ()=>{
+    const boxes = [...pl.querySelectorAll("input[type=checkbox]")];
+    const all = boxes.every(b=>b.checked);
+    if(all) fireworks();
+  });
+
+  /* ======= Confetti & Fireworks (buttons) ======= */
+  function confetti(){
+    const count=90;
+    for(let i=0;i<count;i++){
+      const d=document.createElement("div");
+      d.style.position="fixed";
+      d.style.left=(Math.random()*100)+"vw";
+      d.style.top="-2vh";
+      const size = (Math.random()*7+3);
+      d.style.width=d.style.height=size+"px";
+      d.style.background=`hsl(${Math.random()*360} 90% 60%)`;
+      d.style.borderRadius=Math.random()>.5?"2px":"999px";
+      d.style.transform=`rotate(${Math.random()*360}deg)`;
+      d.style.zIndex=80;
+      document.body.appendChild(d);
+      const dur = SPEED.confettiMinMs + Math.random()*(SPEED.confettiMaxMs - SPEED.confettiMinMs);
+      d.animate(
+        [{transform:`translateY(0) rotate(0deg)`},{transform:`translateY(110vh) rotate(${Math.random()*720}deg)`}],
+        {duration: dur, easing: "cubic-bezier(.2,.8,.2,1)"}
+      ).onfinish = ()=>d.remove();
+    }
+  }
+
+  function fireworks(){
+    const n =  Math.max(8, Math.min(18, 12));
+    const bursts = SPEED.fireworksBursts;
+    for(let b=0;b<bursts;b++){
+      setTimeout(()=>{
+        const cx=innerWidth/2, cy=innerHeight/3;
+        for(let i=0;i<n;i++){
+          const p=document.createElement("div");
+          p.style.position="fixed"; p.style.left=cx+"px"; p.style.top=cy+"px";
+          p.style.width=p.style.height="6px"; p.style.borderRadius="999px";
+          p.style.background=`hsl(${(i/n)*360} 90% 60%)`; p.style.zIndex=80;
+          document.body.appendChild(p);
+          const angle = i/n*Math.PI*2;
+          const dist = 60+Math.random()*110;
+          const dx = Math.cos(angle)*dist;
+          const dy = Math.sin(angle)*dist;
+          p.animate(
+            [{transform:"translate(0,0)", opacity:1, filter:"blur(0px)"},
+             {transform:`translate(${dx}px, ${dy}px)`, opacity:0, filter:"blur(1px)"}],
+            {duration: SPEED.fireworksParticleMs, easing:"cubic-bezier(.2,.8,.2,1)"}
+          ).onfinish=()=>p.remove();
+        }
+      }, b*SPEED.fireworksBurstGapMs);
+    }
+  }
+  document.getElementById("confettiBtn").addEventListener("click", confetti);
+  document.getElementById("fireworksBtn").addEventListener("click", fireworks);
+
+  /* Close lightbox */
+  window.addEventListener("keydown", (e)=>{ if(e.key==="Escape") document.getElementById("lightbox").style.display="none"; });
+</script>
+</body>
+</html>
